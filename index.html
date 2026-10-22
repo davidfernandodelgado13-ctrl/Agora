@@ -1,0 +1,1432 @@
+<!doctype html>
+<!--
+  Ágora v1.0, by Dafer
+  David Fernando Delgado López, 2026
+  Licencia CC BY-NC 4.0: https://creativecommons.org/licenses/by-nc/4.0/deed.es
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="author" content="David Fernando Delgado López (Dafer)">
+<meta name="robots" content="noindex, nofollow">
+<title>Ágora</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23B9532B'/%3E%3Cpath d='M7 21a9 9 0 0 1 18 0z' fill='%23F2B347'/%3E%3Cpath d='M4 21h24' stroke='%23FBF6EC' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M16 6v3M8.5 9.5l2 2M23.5 9.5l-2 2' stroke='%23F2B347' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Young+Serif&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+/* Paleta "plaza llanera": arcilla, sol de la tarde, sabana, río y cal */
+:root{
+  --bg:#FBF6EC;--surface:#FFFDF8;--surface2:#F3EADB;--ink:#2B211C;--muted:#7A6A5C;--line:#E6D8C3;
+  --accent:#B9532B;--accent2:#963F1E;--accent-ink:#FFF8EE;
+  --sol:#E9A23B;--sabana:#557A34;--rio:#2F6C8F;--noche:#1D2A33;--warn:#A2421C;
+  --o1:#C0502B;--o2:#2F6C8F;--o3:#D18E1A;--o4:#557A34;--o5:#7D4E8C;--o6:#1F8580;
+  --ok:#4E7A2E;--bad:#B23A2A;--radius:10px;
+  --serif:"Young Serif",Georgia,serif;--sans:"Atkinson Hyperlegible",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#18232B;--surface:#202E38;--surface2:#293944;--ink:#F4ECDF;--muted:#B3A796;--line:#34474F;
+  --accent:#E07A4F;--accent2:#EE936B;--accent-ink:#1B1410;--sol:#F2B85C;--sabana:#8DB35E;--rio:#6FA8C8;--warn:#F0A35E;--ok:#8DB35E;--bad:#EE7A66;
+}}
+:root[data-theme="dark"]{--bg:#18232B;--surface:#202E38;--surface2:#293944;--ink:#F4ECDF;--muted:#B3A796;--line:#34474F;--accent:#E07A4F;--accent2:#EE936B;--accent-ink:#1B1410;--sol:#F2B85C;--sabana:#8DB35E;--rio:#6FA8C8;--warn:#F0A35E;--ok:#8DB35E;--bad:#EE7A66}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:.5em 1em;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:.45em}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);box-shadow:0 2px 0 var(--accent2)}
+button.primary:hover:not(:disabled){background:var(--accent2);border-color:var(--accent2)}
+button.ghost{background:transparent;border-color:transparent}
+button.ghost:hover:not(:disabled){border-color:var(--line);background:var(--surface)}
+button svg{width:1.15em;height:1.15em;flex:none}
+input[type=text],textarea{width:100%;background:var(--surface);border:1.5px solid var(--line);border-radius:8px;padding:.6em .75em}
+input[type=text]:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+textarea{resize:vertical;min-height:4.5em}
+label.f{display:block;font-size:.88em;color:var(--muted);margin:.9em 0 .3em;font-weight:700}
+.muted{color:var(--muted)}
+[hidden]{display:none!important}
+.view{min-height:100%}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:400}
+
+/* Franja tejida, como el borde de un chinchorro */
+.franja{height:6px;background:repeating-linear-gradient(90deg,var(--accent) 0 22px,var(--sol) 22px 34px,var(--sabana) 34px 52px,var(--bg) 52px 56px,var(--rio) 56px 66px,var(--bg) 66px 70px)}
+
+/* Marca: la tilde de la Á es un sol */
+.wordmark{font-family:var(--serif);letter-spacing:-.01em;white-space:nowrap;color:var(--ink)}
+.wm-a{position:relative;display:inline-block}
+.wm-sun{position:absolute;width:.62em;left:.04em;top:-.3em;overflow:visible}
+.wm-sun .disc{fill:var(--sol)}
+.wm-sun .rays{stroke:var(--sol);stroke-width:2.2;stroke-linecap:round;fill:none}
+.logo{font-size:1.45em;cursor:pointer;line-height:1;padding-top:.2em}
+
+.credit{font-size:.8em;color:var(--muted);text-align:center;padding:6px 0}
+.credit b{font-family:var(--serif);font-weight:400;color:var(--ink)}
+.credit a{color:inherit}
+
+/* Inicio */
+#home{display:flex;flex-direction:column;align-items:center;padding:0 0 24px}
+.hero{width:100%;display:flex;flex-direction:column;align-items:center;padding:28px 16px 0}
+.llano{width:min(560px,100%);height:auto;display:block}
+.brand{text-align:center;margin-top:6px}
+.brand h1{font-size:clamp(3rem,10vw,4.6rem);margin:.15em 0 0;line-height:1}
+.brand .lema{font-family:var(--serif);font-size:1.3em;margin:.35em 0 0}
+.brand p{margin:.3em 0 0;color:var(--muted)}
+.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;width:min(620px,calc(100% - 32px));margin:26px 16px 0}
+.role{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:14px;align-items:center;text-align:left;padding:18px;border-radius:12px;background:var(--surface);border:1.5px solid var(--line);font-weight:400;justify-content:stretch}
+.role svg{grid-row:1/3;width:44px;height:44px}
+.role b{font-family:var(--serif);font-weight:400;font-size:1.35em}
+.role:hover{border-color:var(--accent);box-shadow:0 3px 0 var(--accent)}
+#resumeBox{width:min(620px,calc(100% - 32px));margin-top:16px}
+#home .credit{margin-top:22px}
+
+/* Barras superiores */
+.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--surface);border-bottom:1.5px solid var(--line)}
+.bar-wrap{position:sticky;top:0;z-index:5}
+.topbar .grow{flex:1}
+#deckTitle{max-width:300px;font-family:var(--serif);font-size:1.05em}
+
+/* Editor */
+.ed{display:grid;grid-template-columns:236px 1fr;min-height:calc(100vh - 66px)}
+.side{border-right:1.5px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--surface2)}
+.adds{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.adds button{font-size:.85em;padding:.6em .4em}
+.adds .wide{grid-column:1/-1}
+#slideList{display:flex;flex-direction:column;gap:8px;overflow:auto}
+.thumb{position:relative;border:2px solid var(--line);border-radius:8px;background:var(--surface);cursor:pointer;aspect-ratio:16/9;overflow:hidden;flex:none}
+.thumb.on{border-color:var(--accent);box-shadow:0 2px 0 var(--accent)}
+.thumb img{width:100%;height:100%;object-fit:contain;background:#fff}
+.thumb .num{position:absolute;left:0;top:0;background:var(--accent);color:var(--accent-ink);font-size:.75em;font-weight:700;border-radius:0 0 6px 0;padding:1px 7px;z-index:1}
+.thumb-txt{padding:22px 10px 8px;font-size:.82em;overflow:hidden;height:100%}
+.thumb-txt small{color:var(--accent);font-weight:700;display:block}
+.thumb-actions{position:absolute;right:4px;top:4px;display:none;gap:3px}
+.thumb:hover .thumb-actions,.thumb.on .thumb-actions{display:flex}
+.thumb-actions button{padding:1px 7px;font-size:.75em;border-radius:6px}
+.main{padding:22px;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,1fr);gap:24px;align-content:start}
+.main h3{margin:0 0 6px;font-size:1.2em}
+.optrow{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.optrow input[type=radio]{width:20px;height:20px;accent-color:var(--ok)}
+.hint{background:var(--surface);border:2px dashed var(--line);border-radius:12px;padding:28px;text-align:center;color:var(--muted);grid-column:1/-1}
+.hint b{font-family:var(--serif);font-weight:400;font-size:1.25em;color:var(--ink)}
+.warn{color:var(--warn);font-size:.88em}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--noche);color:#F4ECDF;padding:.7em 1.2em;border-radius:10px;border-bottom:3px solid var(--sol);z-index:50;max-width:90vw;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;align-items:center;gap:.5em}
+.toast svg{width:1.2em;height:1.2em;color:var(--sol)}
+
+/* Diapositivas */
+.slide{aspect-ratio:16/9;width:100%;background:#FFFDF8;color:#2B211C;border-radius:8px;overflow:hidden;position:relative;container-type:inline-size;box-shadow:0 2px 0 rgba(43,33,28,.08),0 8px 24px rgba(43,33,28,.08);font-family:var(--sans)}
+.slide-image{background:#fff}
+.slide-image img{width:100%;height:100%;object-fit:contain;display:block}
+.slide .txt{padding:6cqw 7cqw;height:100%;overflow:hidden}
+.slide h2{font-family:var(--serif);font-weight:400;font-size:4.8cqw;line-height:1.12;margin:0 0 2.2cqw}
+.slide p{font-size:2.7cqw;margin:0;white-space:pre-wrap;line-height:1.45}
+.slide .two{display:grid;grid-template-columns:1.2fr 1fr;height:100%}
+.slide .two img{width:100%;height:100%;object-fit:cover}
+.slide .q{height:100%;padding:4cqw 5cqw;display:flex;flex-direction:column;gap:2cqw;overflow:hidden}
+.slide .q h2{font-size:4cqw;margin:0;white-space:pre-wrap}
+.q-tag{font-size:1.6cqw;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#B9532B;display:flex;align-items:center;gap:1cqw}
+.q-tag::before{content:"";width:3cqw;height:.45cqw;background:#E9A23B;border-radius:1cqw}
+.q-img{max-height:22cqw;max-width:100%;object-fit:contain;align-self:flex-start;border-radius:.8cqw}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:1.4cqw;margin-top:auto}
+.opt{position:relative;display:flex;align-items:center;gap:1.6cqw;padding:1.5cqw 2cqw;border-radius:1cqw;background:#F5ECDD;font-size:2.5cqw;overflow:hidden;border:.35cqw solid transparent}
+.opt .fill{position:absolute;left:0;top:0;bottom:0;opacity:.2;background:currentColor}
+.opt .letter{width:4.4cqw;height:4.4cqw;font-size:2.2cqw}
+.opt .t{position:relative;flex:1;color:#2B211C}
+.opt .pct{position:relative;font-size:2.2cqw}
+.opt.right{border-color:#4E7A2E;background:#E7EFD9}
+.opt.dim{opacity:.5}
+.letter{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;color:#fff;font-weight:700;flex:none;position:relative;font-family:var(--serif);font-weight:400}
+.o1 .letter,.letter.o1{background:var(--o1)}.o2 .letter,.letter.o2{background:var(--o2)}.o3 .letter,.letter.o3{background:var(--o3)}
+.o4 .letter,.letter.o4{background:var(--o4)}.o5 .letter,.letter.o5{background:var(--o5)}.o6 .letter,.letter.o6{background:var(--o6)}
+.opt.o1{color:#C0502B}.opt.o2{color:#2F6C8F}.opt.o3{color:#D18E1A}.opt.o4{color:#557A34}.opt.o5{color:#7D4E8C}.opt.o6{color:#1F8580}
+.slide .letter.o1,.slide .o1 .letter{background:#C0502B}.slide .o2 .letter{background:#2F6C8F}.slide .o3 .letter{background:#D18E1A}.slide .o4 .letter{background:#557A34}.slide .o5 .letter{background:#7D4E8C}.slide .o6 .letter{background:#1F8580}
+/* Papelitos de las respuestas abiertas */
+.wall{display:flex;flex-wrap:wrap;gap:1.6cqw;overflow:auto;align-content:flex-start;padding:1cqw .5cqw}
+.note{position:relative;background:#FFF1C9;padding:1.6cqw 1.8cqw 1.2cqw;max-width:30cqw;box-shadow:0 .4cqw .9cqw rgba(43,33,28,.14)}
+.note::before{content:"";position:absolute;top:-.9cqw;left:50%;width:6cqw;height:1.8cqw;transform:translateX(-50%) rotate(-3deg);background:rgba(233,162,59,.45)}
+.note p{font-size:2cqw}
+.note small{display:block;margin-top:.6cqw;font-size:1.4cqw;color:#7A6A5C}
+
+/* Clase en vivo */
+.live{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:18px;padding:18px;align-items:start}
+.codebox{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.code{font-family:var(--serif);font-size:1.9em;letter-spacing:.16em;background:var(--accent);color:var(--accent-ink);padding:.05em .5em .1em;border-radius:8px;box-shadow:0 3px 0 var(--accent2);line-height:1.3}
+.status{font-size:.88em;color:var(--muted)}
+.status.ok::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px}
+.status.bad::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--bad);margin-right:6px}
+#stageWrap{display:flex;flex-direction:column;gap:12px}
+#stage{position:relative;background:var(--noche);border-radius:10px;display:flex;align-items:center;justify-content:center;padding:10px}
+#stage:fullscreen{padding:0;border-radius:0}
+#stage:fullscreen .slide{width:min(100vw,177.78vh);border-radius:0}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.controls .pos{min-width:70px;text-align:center;font-family:var(--serif);font-size:1.15em}
+.panel{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.panel h4{margin:0 0 10px;font-size:1.12em;display:flex;align-items:center;gap:.4em}
+.panel h4 svg{width:1.1em;height:1.1em;color:var(--accent)}
+/* La plaza: cada estudiante es una personita */
+.roster{display:flex;flex-wrap:wrap;gap:4px 2px;max-height:200px;overflow:auto;padding:10px 6px 6px;border-radius:8px;
+  background:radial-gradient(circle at 1px 1px,color-mix(in srgb,var(--muted) 30%,transparent) 1px,transparent 1.5px) 0 0/12px 12px,var(--surface2)}
+.persona{width:54px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.persona svg{width:26px;height:30px}
+.persona span{font-size:.72em;max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.roster .empty{font-size:.88em;color:var(--muted);padding:6px}
+.bar-row{display:flex;align-items:center;gap:8px;margin:6px 0}
+.bar{flex:1;height:14px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%}
+.bar i.o1{background:var(--o1)}.bar i.o2{background:var(--o2)}.bar i.o3{background:var(--o3)}.bar i.o4{background:var(--o4)}.bar i.o5{background:var(--o5)}.bar i.o6{background:var(--o6)}
+.ok{color:var(--ok);font-weight:700}
+.resp-count{font-weight:700;margin:0 0 6px}
+.who,.open-list{padding-left:18px;margin:6px 0;max-height:300px;overflow:auto;font-size:.9em}
+.open-list li{margin-bottom:6px}
+.open-list .chk{margin-left:6px;font-size:.75em;padding:1px 7px}
+.link{font-size:.8em;word-break:break-all}
+
+/* Estudiante */
+.join{max-width:420px;margin:0 auto;padding:30px 16px}
+.join .logo{display:block;text-align:center;font-size:2.4em;margin:10px 0 18px;cursor:pointer}
+.join .card{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:22px}
+.join h2{margin:0 0 4px;font-size:1.4em}
+#joinCode{text-transform:uppercase;letter-spacing:.35em;font-size:1.7em;text-align:center;font-family:var(--serif)}
+.s-wrap{max-width:1000px;margin:0 auto;padding:12px 16px 40px;display:flex;flex-direction:column;gap:14px}
+.s-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.s-head #sTitle{font-family:var(--serif);font-weight:400;font-size:1.2em;margin-right:auto}
+#sAnswer{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.opt-btn{display:flex;align-items:center;justify-content:flex-start;gap:12px;text-align:left;padding:14px;font-size:1.08em;border-width:2px;position:relative;overflow:hidden;font-weight:400;box-shadow:0 2px 0 var(--line)}
+.opt-btn.picked{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.opt-btn.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,var(--surface))}
+.opt-btn.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--surface))}
+.opt-btn:disabled{opacity:1;cursor:default;transform:none}
+.opt-btn .pct{margin-left:auto;font-weight:700;color:var(--muted)}
+.s-note{grid-column:1/-1;margin:2px 0 0;text-align:center;font-family:var(--serif);font-size:1.2em}
+.waiting{text-align:center;padding:40px 20px 50px;color:var(--muted);font-family:var(--serif);font-size:1.25em}
+.waiting svg{display:block;margin:0 auto 14px;width:min(260px,70%);height:auto}
+
+/* Estudiante en celular */
+@media (max-width:700px){
+  #sStage .slide:not(.slide-image){aspect-ratio:auto;min-height:min(56vw,320px)}
+  #sStage .slide:not(.slide-image) .q,#sStage .slide:not(.slide-image) .txt{height:auto;min-height:inherit}
+  #sStage .slide h2,#sStage .slide .q h2{font-size:max(4cqw,22px)}
+  #sStage .slide p{font-size:max(2.7cqw,16px)}
+  #sStage .q-tag{font-size:max(1.6cqw,11px)}
+  #sStage .q-tag::before{width:18px;height:3px}
+  #sStage .q-img{max-height:max(22cqw,180px)}
+  #sStage .opts{display:none}
+  #sStage .two{grid-template-columns:1fr}#sStage .two img{max-height:220px}
+}
+/* Puntero láser */
+.laser{position:absolute;width:2.2cqw;height:2.2cqw;min-width:14px;min-height:14px;border-radius:50%;background:#ff2a2a;
+  box-shadow:0 0 0 .5cqw rgba(255,42,42,.25),0 0 2cqw 1cqw rgba(255,42,42,.55);transform:translate(-50%,-50%);pointer-events:none;z-index:5;transition:left 70ms linear,top 70ms linear}
+#stage.lasering,#stage.lasering *{cursor:none}
+#laserBtn::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff2a2a}
+#laserBtn.on{background:#d92020;border-color:#d92020;color:#fff}
+#laserBtn.on::before{background:#fff}
+/* Anonimato y manos levantadas */
+.switch{display:flex;align-items:center;gap:8px;font-size:.9em;font-weight:700;cursor:pointer;user-select:none;padding:.35em .75em;border-radius:8px;border:1.5px solid var(--line)}
+.switch input{width:18px;height:18px;accent-color:var(--accent)}
+.switch.on{background:color-mix(in srgb,var(--accent) 12%,var(--surface));border-color:var(--accent)}
+.badge{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--accent);color:var(--accent-ink);font-family:var(--sans);font-size:.7em;font-weight:700}
+.qlist{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto}
+.qlist .empty{font-size:.9em;color:var(--muted)}
+.qitem{border:1.5px solid var(--line);border-left:4px solid var(--sol);border-radius:8px;padding:8px 10px;font-size:.92em}
+.qitem.done{opacity:.5;border-left-color:var(--line)}
+.qitem.proj{border-color:var(--accent);border-left-color:var(--accent)}
+.qitem .meta{font-size:.8em;color:var(--muted);margin-bottom:3px}
+.qitem .acts{display:flex;gap:6px;margin-top:6px}
+.qitem .acts button{font-size:.8em;padding:.25em .6em}
+.qproj{position:absolute;left:4%;right:4%;bottom:5%;background:#FFFDF8;color:#2B211C;border-radius:8px;border-left:.7em solid #E9A23B;padding:1.3% 2.2%;font-family:"Young Serif",Georgia,serif;font-size:clamp(15px,2.3vw,32px);box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:2}
+#stage:fullscreen .qproj{font-size:3.4vh}
+.qproj small{display:flex;align-items:center;gap:.4em;color:#B9532B;font-family:"Atkinson Hyperlegible",sans-serif;font-weight:700;font-size:.5em;margin-bottom:.25em;text-transform:uppercase;letter-spacing:.1em}
+.qproj small svg{width:1.4em;height:1.4em}
+.anon-banner{font-size:.9em;background:color-mix(in srgb,var(--rio) 12%,var(--surface));border:1.5px solid var(--rio);border-radius:8px;padding:.5em .8em;text-align:center}
+#sAsk{background:var(--surface);border:1.5px solid var(--line);border-left:4px solid var(--sol);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+#sAsk .row{display:flex;gap:8px;justify-content:flex-end}
+/* Actividades HTML */
+.slide-html{background:#fff}
+.slide-html iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+.lasering .slide-html::after{content:"";position:absolute;inset:0;z-index:4}
+#sStage .slide-html{aspect-ratio:auto;height:max(420px,calc(100vh - 190px))}
+.html-tag{position:absolute;left:0;top:0;z-index:3;background:#557A34;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:0 0 6px 0;letter-spacing:.04em}
+.mode-pick{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.mode-pick label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;cursor:pointer}
+.mode-pick label.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.mode-pick input{margin-top:3px;accent-color:var(--accent)}
+.mode-pick small{display:block;color:var(--muted)}
+/* Pregunta rápida */
+.sheet-bg{position:fixed;inset:0;background:rgba(29,42,51,.55);z-index:40;display:grid;place-items:center;padding:16px}
+.sheet{background:var(--surface);border-radius:12px;border-top:6px solid var(--sol);width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;padding:20px 22px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.sheet h3{margin:0 0 12px;font-size:1.4em}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{font-size:.9em}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.sheet .foot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}
+#quickBtn{border-style:dashed}
+#projBtn.on{border-color:var(--sabana);color:var(--sabana)}
+#projBtn.on::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--sabana)}
+/* Pantalla del proyector */
+#proj{position:fixed;inset:0;background:#1D2A33;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#projStage{position:relative;width:min(calc(100vw - 32px),calc((100vh - 32px) * 16 / 9));container-type:inline-size}
+#proj:fullscreen #projStage{width:min(100vw,177.78vh)}
+#proj:fullscreen .slide{border-radius:0;box-shadow:none}
+#projStage .qproj{font-size:2.5cqw}
+#projStage.lasering,#projStage.lasering *{cursor:none}
+.proj-wait{color:#F4ECDF;text-align:center;font-family:var(--serif);font-size:clamp(18px,2.4vw,30px);padding:20px}
+.proj-wait svg{display:block;width:min(340px,60vw);margin:0 auto 18px}
+.proj-wait small{display:block;font-family:var(--sans);font-size:.55em;opacity:.7;margin-top:10px}
+#projCode{position:fixed;right:14px;bottom:12px;background:rgba(29,42,51,.85);color:#F4ECDF;border-radius:8px;padding:.35em .8em;font-size:clamp(13px,1.3vw,20px);border-bottom:3px solid #E9A23B;cursor:pointer;z-index:6}
+#projCode b{font-family:var(--serif);font-weight:400;letter-spacing:.14em;color:#F2B85C;margin-left:.3em}
+#projTools{position:fixed;top:12px;right:14px;display:flex;gap:8px;z-index:6;transition:opacity .4s}
+#projTools.idle{opacity:0;pointer-events:none}
+#proj:fullscreen #projTools{display:none}
+#projTools button{background:rgba(255,253,248,.95)}
+@media (max-width:820px){
+  .ed{grid-template-columns:1fr}
+  .side{border-right:0;border-bottom:1.5px solid var(--line)}
+  #slideList{flex-direction:row;overflow-x:auto}
+  .thumb{flex:0 0 140px}
+  .main{grid-template-columns:1fr;padding:16px}
+  .live{grid-template-columns:1fr;padding:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- Inicio -->
+<section id="home" class="view">
+  <div class="franja" style="width:100%"></div>
+  <div class="hero">
+    <svg class="llano" viewBox="0 0 560 150" aria-hidden="true">
+      <g fill="none" stroke="var(--sol)" stroke-width="3" stroke-linecap="round">
+        <path d="M280 22v-14M230 36l-9-11M330 36l9-11M196 66l-13-6M364 66l13-6"/>
+      </g>
+      <path d="M210 110a70 70 0 0 1 140 0z" fill="var(--sol)"/>
+      <path d="M20 110h520" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M40 124c80-8 160-8 240 0s160 8 240 0" stroke="var(--sabana)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M90 138c60-6 120-6 190 0s130 6 190 0" stroke="var(--sabana)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".55"/>
+      <g fill="none" stroke="var(--sabana)" stroke-width="3" stroke-linecap="round">
+        <path d="M96 110c2-22 4-38 2-54"/><path d="M98 58c-10-8-22-9-32-4M98 58c-4-11-13-17-24-17M98 58c6-10 17-14 28-11M98 58c10-4 21-1 28 6M98 58c1-11 7-19 15-22"/>
+        <path d="M466 110c-1-17-3-30-1-42"/><path d="M465 70c-8-6-17-7-25-3M465 70c-3-9-10-13-19-13M465 70c5-8 13-11 22-8M465 70c8-3 16-1 22 5"/>
+      </g>
+      <path d="M392 44q7-7 14 0q7-7 14 0" stroke="var(--ink)" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".7"/>
+      <path d="M150 30q5-5 10 0q5-5 10 0" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/>
+    </svg>
+    <div class="brand">
+      <h1 data-wordmark></h1>
+      <p class="lema">La plaza de tu salón.</p>
+      <p>Diapositivas, preguntas y participación en vivo. Gratis.</p>
+    </div>
+  </div>
+  <div class="roles">
+    <button class="role" id="goTeacher">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="9" width="38" height="24" rx="3" fill="var(--sabana)"/><path d="M11 17h14M11 23h20" stroke="#FFFDF8" stroke-width="2.4" stroke-linecap="round"/><path d="M17 33l-4 8M31 33l4 8" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/></svg>
+      <b>Soy profe</b><span class="muted">Armo la clase y la proyecto.</span>
+    </button>
+    <button class="role" id="goStudent">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="20" cy="15" r="7" fill="var(--accent)"/><path d="M7 44c0-10 6-16 13-16s13 6 13 16z" fill="var(--accent)"/><path d="M33 28l6-18" stroke="var(--sol)" stroke-width="4" stroke-linecap="round"/><circle cx="40" cy="8" r="4" fill="var(--sol)"/></svg>
+      <b>Soy estudiante</b><span class="muted">Entro con el código del profe.</span>
+    </button>
+  </div>
+  <div id="resumeBox" hidden></div>
+  <footer class="credit"><b>Ágora</b> by Dafer · v1.0 · <a href="https://creativecommons.org/licenses/by-nc/4.0/deed.es" target="_blank" rel="noopener">CC BY-NC 4.0</a></footer>
+</section>
+
+<!-- Editor -->
+<section id="editor" class="view" hidden>
+  <div class="bar-wrap"><div class="franja"></div>
+  <div class="topbar">
+    <span class="logo" data-home data-wordmark title="Inicio"></span>
+    <input type="text" id="deckTitle" placeholder="Nombre de la clase">
+    <span class="grow"></span>
+    <button id="openBtn" class="ghost">Abrir</button>
+    <button id="saveBtn" class="ghost">Guardar archivo</button>
+    <button id="startBtn" class="primary">Empezar la clase</button>
+  </div></div>
+  <div class="ed">
+    <aside class="side">
+      <div class="adds">
+        <button class="wide" id="addFile">PDF o imágenes</button>
+        <button id="addText">Texto</button>
+        <button id="addMC">Opción múltiple</button>
+        <button class="wide" id="addOpen">Pregunta abierta</button>
+      </div>
+      <p class="warn" id="saveWarn" hidden>Esta clase es muy grande: si recargas la página se perderá. Guárdala con «Guardar archivo».</p>
+      <p class="muted" style="font-size:.8em;margin:0">Las diapos se borran al cerrar la pestaña. Usa «Guardar archivo» para conservarlas.</p>
+      <div id="slideList"></div>
+      <footer class="credit" style="margin-top:auto"><b>Ágora</b> by Dafer · v1.0</footer>
+    </aside>
+    <div class="main" id="mainArea">
+      <div class="hint" id="emptyHint">
+        <p><b>Tu clase está vacía.</b><br>Agrega diapositivas desde la izquierda. ¿Tienes un PowerPoint? Guárdalo como PDF y súbelo con «PDF o imágenes».</p>
+      </div>
+      <div id="preview"></div>
+      <div id="props"></div>
+    </div>
+  </div>
+  <input type="file" id="fileIn" accept="application/pdf,image/*" multiple hidden>
+  <input type="file" id="deckIn" accept=".json,application/json" hidden>
+  <input type="file" id="imgIn" accept="image/*" hidden>
+  <input type="file" id="htmlIn" accept=".html,.htm,text/html" hidden>
+</section>
+
+<!-- Clase en vivo (docente) -->
+<section id="live" class="view" hidden>
+  <div class="bar-wrap"><div class="franja"></div>
+  <div class="topbar">
+    <span class="logo" data-wordmark></span>
+    <div class="codebox">
+      <span class="muted">Código</span><span class="code" id="codeLbl">····</span>
+      <span class="status" id="liveStatus">Conectando…</span>
+    </div>
+    <label class="switch" id="anonSw" title="Las respuestas y preguntas nuevas llegan sin nombre"><input type="checkbox" id="anonChk"> Participación anónima</label>
+    <span class="grow"></span>
+    <button id="endBtn">Terminar la clase</button>
+  </div></div>
+  <div class="live">
+    <div id="stageWrap">
+      <div id="stage"></div>
+      <div class="controls">
+        <button id="prevBtn" aria-label="Anterior">◀</button>
+        <span class="pos" id="pos"></span>
+        <button id="nextBtn" class="primary" aria-label="Siguiente">▶</button>
+        <button id="revealBtn">Revelar respuesta</button>
+        <button id="laserBtn" title="Puntero láser (tecla L)">Láser</button>
+        <button id="restartBtn" title="Vuelve a cargar la actividad en todas las pantallas" hidden>Reiniciar actividad</button>
+        <button id="quickBtn" title="Crear una pregunta en este momento">+ Pregunta rápida</button>
+        <span class="grow" style="flex:1"></span>
+        <button id="projBtn" class="ghost" title="Abre una ventana con solo la diapositiva, para el video beam">Abrir proyector</button>
+        <button id="fsBtn" class="ghost" title="Pantalla completa en esta pestaña">Ampliar</button>
+      </div>
+      <p class="muted" style="margin:0;font-size:.85em">Avanza con ← → o la barra espaciadora. La L prende el láser. Las teclas también funcionan desde la ventana del proyector.</p>
+      <footer class="credit" style="text-align:left"><b>Ágora</b> by Dafer</footer>
+    </div>
+    <div>
+      <div class="panel">
+        <h4>En la plaza <span class="badge" id="nConn">0</span></h4>
+        <div class="roster" id="roster"></div>
+        <p class="link muted" id="joinLink"></p>
+      </div>
+      <div class="panel">
+        <h4><span data-hand></span>Manos levantadas <span class="badge" id="qBadge" hidden>0</span></h4>
+        <div class="qlist" id="qList"></div>
+      </div>
+      <div class="panel">
+        <h4>Respuestas</h4>
+        <div id="responses"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Ventana del proyector -->
+<section id="proj" class="view" hidden>
+  <div id="projStage"></div>
+  <div id="projTools"><button id="projFs" class="primary">Ampliar (F)</button></div>
+  <div id="projCode" title="Clic para ocultar" hidden>Código<b></b></div>
+</section>
+
+<div class="sheet-bg" id="quickBg" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="quickTitle">
+    <h3 id="quickTitle">Pregunta rápida</h3>
+    <div class="seg" id="quickType"></div>
+    <label class="f" for="quickPrompt" id="quickPromptLbl">Pregunta</label>
+    <textarea id="quickPrompt" rows="2" maxlength="300" placeholder="Escribe la pregunta"></textarea>
+    <div id="quickOpts"></div>
+    <input type="file" id="quickHtmlIn" accept=".html,.htm,text/html" hidden>
+    <p class="warn" id="quickErr" hidden></p>
+    <div class="foot">
+      <button class="ghost" id="quickCancel">Cancelar</button>
+      <button id="quickNext">Dejarla de siguiente</button>
+      <button class="primary" id="quickGo">Lanzarla ya</button>
+    </div>
+  </div>
+</div>
+
+<!-- Estudiante -->
+<section id="sJoin" class="view" hidden>
+  <div class="franja"></div>
+  <div class="join">
+    <span class="logo" data-home data-wordmark title="Inicio"></span>
+    <div class="card">
+      <h2>Entra a la clase</h2>
+      <label class="f" for="joinCode">Código que te dio el profe</label>
+      <input type="text" id="joinCode" maxlength="4" autocomplete="off" placeholder="ABCD">
+      <label class="f" for="joinName">Tu nombre</label>
+      <input type="text" id="joinName" maxlength="40" autocomplete="name" placeholder="Nombre y apellido">
+      <p class="warn" id="joinErr" hidden></p>
+      <button class="primary" id="joinBtn" style="width:100%;margin-top:18px;padding:.7em">Entrar</button>
+    </div>
+    <footer class="credit"><b>Ágora</b> by Dafer</footer>
+  </div>
+</section>
+
+<section id="sClass" class="view" hidden>
+  <div class="franja"></div>
+  <div class="s-wrap">
+    <div class="s-head">
+      <span id="sTitle">Clase</span>
+      <span class="status" id="sStatus">Conectando…</span>
+      <span class="muted" id="sPos"></span>
+      <button id="sAskBtn"><span data-hand></span>Levantar la mano</button>
+      <button class="ghost" id="sFs" title="Pantalla completa">Ampliar</button>
+    </div>
+    <div class="anon-banner" id="sAnon" hidden>Participación anónima: tu profe no verá tu nombre en tus respuestas ni en tus preguntas.</div>
+    <div id="sAsk" hidden>
+      <label class="f" for="sAskTxt" style="margin:0">¿Qué le quieres preguntar al profe?</label>
+      <textarea id="sAskTxt" rows="3" maxlength="300" placeholder="Escribe tu duda aquí"></textarea>
+      <div class="row"><button class="ghost" id="sAskCancel">Cancelar</button><button class="primary" id="sAskSend">Enviar pregunta</button></div>
+    </div>
+    <div id="sStage"></div>
+    <div id="sAnswer"></div>
+    <footer class="credit"><b>Ágora</b> by Dafer</footer>
+  </div>
+</section>
+
+<script>
+'use strict';
+// Utilidades
+const $ = (s, r = document) => r.querySelector(s);
+const LET = ['A', 'B', 'C', 'D', 'E', 'F'];
+const PREFIX = 'agora-sv-';
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === false || v == null) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'text') el.textContent = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+// Las diapos y la clase en curso solo viven mientras la pestaña esté abierta:
+// sobreviven a una recarga accidental, pero al cerrar la pestaña se borran.
+const session = {
+  get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { sessionStorage.setItem(k, v); return true; } catch (e) { return false; } },
+  del(k) { try { sessionStorage.removeItem(k); } catch (e) {} }
+};
+store.del('agora.deck'); store.del('agora.live'); // limpia lo que guardaban versiones anteriores
+const uid = () => Math.random().toString(36).slice(2, 10);
+let toastTimer;
+// Marca e íconos propios
+const SUN = '<svg class="wm-sun" viewBox="0 0 24 14" aria-hidden="true"><path class="rays" d="M12 1.5v2.2M4.6 4.4l1.5 1.5M19.4 4.4l-1.5 1.5"/><path class="disc" d="M5.5 13.5a6.5 6.5 0 0 1 13 0z"/></svg>';
+const HAND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 11V6a2 2 0 0 0-4 0"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>';
+const LLANO_MINI = '<svg viewBox="0 0 260 90" aria-hidden="true"><path d="M95 66a35 35 0 0 1 70 0z" fill="var(--sol)"/><path d="M130 18v-8M106 26l-5-6M154 26l5-6" stroke="var(--sol)" stroke-width="3" stroke-linecap="round"/><path d="M10 66h240" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/><path d="M30 78c70-6 130-6 200 0" stroke="var(--sabana)" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
+function markIcons(root = document) {
+  root.querySelectorAll('[data-wordmark]').forEach(el => { el.innerHTML = '<span class="wordmark"><span class="wm-a">A' + SUN + '</span>gora</span>'; el.setAttribute('aria-label', 'Ágora'); });
+  root.querySelectorAll('[data-hand]').forEach(el => { el.outerHTML = HAND; });
+}
+function iconEl(svg) { const t = document.createElement('template'); t.innerHTML = svg; return t.content.firstChild; }
+const PERSONA_COLORS = ['#B9532B', '#2F6C8F', '#D18E1A', '#557A34', '#7D4E8C', '#1F8580', '#A2421C'];
+function persona(name) {
+  let hsh = 0; for (const c of name) hsh = (hsh * 31 + c.charCodeAt(0)) >>> 0;
+  const col = PERSONA_COLORS[hsh % PERSONA_COLORS.length];
+  const fig = iconEl('<svg viewBox="0 0 26 30" aria-hidden="true"><circle cx="13" cy="7" r="5.5" fill="' + col + '"/><path d="M2 30c0-8 5-13 11-13s11 5 11 13z" fill="' + col + '"/></svg>');
+  return h('div', { class: 'persona', title: name }, fig, h('span', { text: name.split(' ')[0] }));
+}
+function toast(msg, ms = 2600, hand = false) {
+  let t = $('.toast');
+  if (!t) { t = h('div', { class: 'toast' }); document.body.append(t); }
+  t.replaceChildren(); if (hand) t.append(iconEl(HAND)); t.append(h('span', { text: msg })); t.hidden = false;
+  clearTimeout(toastTimer);
+  if (ms) toastTimer = setTimeout(() => t.hidden = true, ms);
+}
+function show(id) {
+  document.querySelectorAll('.view').forEach(v => v.hidden = v.id !== id);
+  window.scrollTo(0, 0);
+}
+function clean(s, n = 40) { return String(s || '').replace(/\s+/g, ' ').trim().slice(0, n); }
+function genCode() {
+  const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  let c = ''; for (let i = 0; i < 4; i++) c += A[Math.floor(Math.random() * A.length)];
+  return c;
+}
+function fileToDataURL(file, max = 1280, q = 0.8) {
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const sc = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL('image/jpeg', q));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('img')); };
+    img.src = url;
+  });
+}
+
+// Render de diapositiva
+// Las actividades HTML corren dentro de un iframe aislado (sin acceso a Ágora,
+// a los nombres ni a las respuestas). Se le agrega un pequeño puente para
+// sincronizar el desplazamiento en modo guiado y para que no falle si usa localStorage.
+const HTML_BRIDGE = '<script>(function(){'
+  + 'function mk(){var d={};return{getItem:function(k){return k in d?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}'
+  + '["localStorage","sessionStorage"].forEach(function(n){try{window[n].length}catch(e){try{Object.defineProperty(window,n,{value:mk(),configurable:true})}catch(_){}}});'
+  + 'var lock=0,t=0;function mx(){var h=document.documentElement;return Math.max(1,h.scrollHeight-innerHeight)}'
+  + 'addEventListener("message",function(e){var d=e.data;if(!d||d.agora!=="scroll")return;lock=Date.now();scrollTo(0,d.y*mx())});'
+  + 'addEventListener("scroll",function(){if(Date.now()-lock<400)return;clearTimeout(t);t=setTimeout(function(){parent.postMessage({agora:"scrolled",y:scrollY/mx()},"*")},60)},{passive:true});'
+  + 'addEventListener("load",function(){parent.postMessage({agora:"loaded"},"*")});'
+  + '})();<\/script>';
+function withBridge(html) {
+  html = String(html || '');
+  const m = html.match(/<head[^>]*>/i) || html.match(/<html[^>]*>/i);
+  if (m) return html.slice(0, m.index + m[0].length) + HTML_BRIDGE + html.slice(m.index + m[0].length);
+  return HTML_BRIDGE + html;
+}
+// Monta una diapositiva; si es la misma actividad HTML que ya está corriendo, no la recarga
+function setStage(c, s, o = {}) {
+  const ex = c.querySelector(':scope > .slide');
+  if (s.type === 'html' && ex && ex.dataset.id === s.id && ex.dataset.v === String(o.v || 0)) {
+    [...c.children].forEach(ch => { if (ch !== ex) ch.remove(); });
+    return ex;
+  }
+  const el = renderSlide(s, o); c.replaceChildren(el); return el;
+}
+function renderSlide(s, o = {}) {
+  const el = h('div', { class: 'slide slide-' + s.type, 'data-id': s.id, 'data-v': String(o.v || 0) });
+  if (s.type === 'html') {
+    el.append(h('iframe', { sandbox: 'allow-scripts allow-forms allow-modals', srcdoc: withBridge(s.html), title: s.name || 'Actividad', loading: 'eager' }));
+    if (o.tag) el.append(h('span', { class: 'html-tag' }, s.mode === 'guided' ? 'Actividad guiada' : 'Actividad libre'));
+    return el;
+  }
+  if (s.type === 'image') { el.append(h('img', { src: s.img, alt: 'Diapositiva' })); return el; }
+  if (s.type === 'text') {
+    const txt = h('div', { class: 'txt' }, h('h2', { text: s.title || '' }), h('p', { text: s.body || '' }));
+    el.append(s.img ? h('div', { class: 'two' }, txt, h('img', { src: s.img, alt: '' })) : txt);
+    return el;
+  }
+  const q = h('div', { class: 'q' },
+    h('div', { class: 'q-tag', text: s.type === 'mc' ? 'Pregunta' : 'Pregunta abierta' }),
+    h('h2', { text: s.prompt || '' }));
+  if (s.img) q.append(h('img', { class: 'q-img', src: s.img, alt: '' }));
+  if (s.type === 'mc' && !o.student) {
+    const total = o.counts ? o.counts.reduce((a, b) => a + b, 0) : 0;
+    const grid = h('div', { class: 'opts' });
+    s.options.forEach((t, i) => {
+      const pct = o.counts ? Math.round((o.counts[i] || 0) / Math.max(1, total) * 100) : null;
+      const cls = 'opt o' + (i + 1) + (o.correct === i ? ' right' : '') + (o.counts && o.correct != null && o.correct !== i ? ' dim' : '');
+      grid.append(h('div', { class: cls },
+        pct != null ? h('i', { class: 'fill', style: 'width:' + pct + '%' }) : null,
+        h('span', { class: 'letter' }, LET[i]),
+        h('span', { class: 't', text: t || '…' }),
+        pct != null ? h('b', { class: 'pct' }, pct + '%') : null));
+    });
+    q.append(grid);
+  }
+  if (s.type === 'open' && o.answers) {
+    q.append(h('div', { class: 'wall' }, o.answers.map((a, i) =>
+      h('div', { class: 'note', style: 'transform:rotate(' + (((i * 37) % 5) - 2) * 0.7 + 'deg)' }, h('p', { text: a.value }), a.name ? h('small', { text: a.name }) : null))));
+  }
+  el.append(q);
+  return el;
+}
+
+// EDITOR (docente)
+let deck = (() => { try { return JSON.parse(session.get('agora.deck')); } catch (e) { return null; } })()
+  || { title: 'Mi clase', slides: [] };
+let sel = 0;
+let dirty = false;
+function saveDeck() { dirty = true; $('#saveWarn').hidden = session.set('agora.deck', JSON.stringify(deck)); }
+
+function renderEditor() {
+  $('#deckTitle').value = deck.title || '';
+  sel = Math.max(0, Math.min(sel, deck.slides.length - 1));
+  renderList(); renderProps();
+  $('#emptyHint').hidden = deck.slides.length > 0;
+  $('#startBtn').disabled = deck.slides.length === 0;
+}
+function renderList() {
+  const list = $('#slideList'); list.replaceChildren();
+  deck.slides.forEach((s, i) => {
+    const content = s.type === 'image'
+      ? h('img', { src: s.img, alt: '' })
+      : h('div', { class: 'thumb-txt' },
+          h('small', { text: { text: 'Texto', mc: 'Opción múltiple', open: 'Pregunta abierta', html: 'Actividad HTML' }[s.type] }),
+          h('div', { text: s.title || s.prompt || s.name || '(sin escribir)' }));
+    list.append(h('div', { class: 'thumb' + (i === sel ? ' on' : ''), onclick: () => { sel = i; renderEditor(); } },
+      h('span', { class: 'num' }, i + 1), content,
+      h('div', { class: 'thumb-actions' },
+        h('button', { title: 'Subir', onclick: e => { e.stopPropagation(); move(i, -1); } }, '↑'),
+        h('button', { title: 'Bajar', onclick: e => { e.stopPropagation(); move(i, 1); } }, '↓'),
+        h('button', { title: 'Eliminar', onclick: e => { e.stopPropagation(); del(i); } }, '✕'))));
+  });
+}
+function move(i, d) {
+  const j = i + d; if (j < 0 || j >= deck.slides.length) return;
+  [deck.slides[i], deck.slides[j]] = [deck.slides[j], deck.slides[i]];
+  sel = j; saveDeck(); renderEditor();
+}
+function del(i) {
+  if (!confirm('¿Eliminar la diapositiva ' + (i + 1) + '?')) return;
+  deck.slides.splice(i, 1); if (sel >= deck.slides.length) sel = deck.slides.length - 1;
+  saveDeck(); renderEditor();
+}
+function addSlide(s) { const at = deck.slides.length ? sel + 1 : 0; deck.slides.splice(at, 0, s); sel = at; saveDeck(); renderEditor(); }
+function refreshPreview() {
+  const s = deck.slides[sel];
+  $('#preview').replaceChildren(s ? renderSlide(s) : '');
+  renderList(); saveDeck();
+}
+let imgTarget = null;
+function imgControls(s) {
+  return h('div', {},
+    h('label', { class: 'f' }, 'Imagen (opcional)'),
+    s.img
+      ? h('button', { onclick: () => { delete s.img; refreshPreview(); renderProps(); } }, 'Quitar imagen')
+      : h('button', { onclick: () => { imgTarget = s; $('#imgIn').click(); } }, 'Agregar imagen'));
+}
+function renderProps() {
+  const s = deck.slides[sel], p = $('#props');
+  $('#preview').replaceChildren(s ? renderSlide(s) : '');
+  p.replaceChildren();
+  if (!s) return;
+  if (s.type === 'html') {
+    const pick = (mode, title, sub) => h('label', { class: s.mode === mode ? 'on' : '' },
+      h('input', { type: 'radio', name: 'mode' + s.id, checked: s.mode === mode, onchange: () => { s.mode = mode; saveDeck(); renderProps(); } }),
+      h('span', {}, h('b', {}, title), h('small', {}, sub)));
+    p.append(h('h3', {}, 'Actividad HTML'),
+      h('label', { class: 'f' }, 'Nombre'),
+      h('input', { type: 'text', value: s.name || '', oninput: e => { s.name = e.target.value; renderList(); saveDeck(); } }),
+      h('label', { class: 'f' }, '¿Cómo se usa en clase?'),
+      h('div', { class: 'mode-pick' },
+        pick('free', 'Libre', 'Cada estudiante la resuelve a su ritmo en su pantalla.'),
+        pick('guided', 'Guiada', 'Todos siguen tu desplazamiento, como una lectura en grupo.')),
+      h('p', { class: 'muted', style: 'font-size:.85em' }, 'Funciona mejor si la actividad viene en un solo archivo, con las imágenes incluidas. Corre aislada: no puede ver nombres ni respuestas de Ágora.'),
+      h('button', { onclick: () => { htmlTarget = s; $('#htmlIn').click(); } }, 'Cambiar archivo'));
+    return;
+  }
+  if (s.type === 'image') {
+    p.append(h('h3', {}, 'Diapositiva de imagen'),
+      h('p', { class: 'muted' }, 'Viene de tu PDF o imagen. Para hacerla interactiva, agrega después una pregunta.'));
+    return;
+  }
+  if (s.type === 'text') {
+    p.append(h('h3', {}, 'Diapositiva de texto'),
+      h('label', { class: 'f' }, 'Título'),
+      h('input', { type: 'text', value: s.title || '', oninput: e => { s.title = e.target.value; refreshPreview(); } }),
+      h('label', { class: 'f' }, 'Contenido'),
+      h('textarea', { rows: 6, oninput: e => { s.body = e.target.value; refreshPreview(); } }, s.body || ''),
+      imgControls(s));
+    return;
+  }
+  p.append(h('h3', {}, s.type === 'mc' ? 'Pregunta de opción múltiple' : 'Pregunta abierta'),
+    h('label', { class: 'f' }, 'Pregunta'),
+    h('textarea', { rows: 3, oninput: e => { s.prompt = e.target.value; refreshPreview(); } }, s.prompt || ''));
+  if (s.type === 'mc') {
+    p.append(h('label', { class: 'f' }, 'Opciones (marca la correcta)'));
+    const name = 'c' + s.id;
+    s.options.forEach((o, i) => {
+      p.append(h('div', { class: 'optrow' },
+        h('input', { type: 'radio', name, checked: s.correct === i, title: 'Correcta', onchange: () => { s.correct = i; refreshPreview(); } }),
+        h('span', { class: 'letter o' + (i + 1) }, LET[i]),
+        h('input', { type: 'text', value: o, placeholder: 'Opción ' + LET[i], oninput: e => { s.options[i] = e.target.value; refreshPreview(); } }),
+        s.options.length > 2 ? h('button', { class: 'ghost', title: 'Quitar', onclick: () => {
+          s.options.splice(i, 1);
+          if (s.correct === i) s.correct = 0; else if (s.correct > i) s.correct--;
+          refreshPreview(); renderProps();
+        } }, '✕') : null));
+    });
+    if (s.options.length < 6) p.append(h('button', { onclick: () => { s.options.push(''); refreshPreview(); renderProps(); } }, '+ Opción'));
+  }
+  p.append(imgControls(s));
+}
+
+$('#addText').onclick = () => addSlide({ id: uid(), type: 'text', title: '', body: '' });
+$('#addMC').onclick = () => addSlide({ id: uid(), type: 'mc', prompt: '', options: ['', '', '', ''], correct: 0 });
+$('#addOpen').onclick = () => addSlide({ id: uid(), type: 'open', prompt: '' });
+$('#addFile').onclick = () => $('#fileIn').click();
+let htmlTarget = null;
+$('#htmlIn').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  if (f.size > 8 * 1024 * 1024) { toast('Ese archivo pesa más de 8 MB. Prueba con imágenes más livianas.'); return; }
+  const html = await f.text();
+  if (!/<[a-z!]/i.test(html)) { toast('Ese archivo no parece un HTML.'); return; }
+  const name = f.name.replace(/\.html?$/i, '');
+  if (htmlTarget) { htmlTarget.html = html; htmlTarget.name = htmlTarget.name || name; saveDeck(); renderEditor(); toast('Actividad actualizada'); }
+  
+};
+$('#deckTitle').oninput = e => { deck.title = e.target.value; saveDeck(); };
+$('#imgIn').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f || !imgTarget) return;
+  try { imgTarget.img = await fileToDataURL(f, 1000); refreshPreview(); renderProps(); }
+  catch (err) { toast('No pude leer esa imagen.'); }
+};
+$('#fileIn').onchange = async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  let at = deck.slides.length ? sel + 1 : 0, added = 0;
+  for (const f of files) {
+    try {
+      if (f.type === 'application/pdf' || /\.pdf$/i.test(f.name)) {
+        if (!window.pdfjsLib) { toast('No cargó el lector de PDF. Revisa la conexión.'); continue; }
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const pdf = await pdfjsLib.getDocument({ data: await f.arrayBuffer() }).promise;
+        for (let n = 1; n <= pdf.numPages; n++) {
+          toast('Importando página ' + n + ' de ' + pdf.numPages + '…', 0);
+          const page = await pdf.getPage(n);
+          const vp = page.getViewport({ scale: 1280 / page.getViewport({ scale: 1 }).width });
+          const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height;
+          const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+          await page.render({ canvasContext: ctx, viewport: vp }).promise;
+          deck.slides.splice(at++, 0, { id: uid(), type: 'image', img: c.toDataURL('image/jpeg', 0.78) }); added++;
+        }
+      } else if (f.type.startsWith('image/')) {
+        deck.slides.splice(at++, 0, { id: uid(), type: 'image', img: await fileToDataURL(f) }); added++;
+      }
+    } catch (err) { toast('No pude importar «' + f.name + '».'); }
+  }
+  if (added) { sel = at - 1; saveDeck(); renderEditor(); toast(added + ' diapositiva(s) agregada(s)'); }
+};
+$('#saveBtn').onclick = () => {
+  const blob = new Blob([JSON.stringify(deck)], { type: 'application/json' });
+  const a = h('a', { href: URL.createObjectURL(blob), download: (clean(deck.title, 60) || 'clase').replace(/[^\wáéíóúñÁÉÍÓÚÑ -]/g, '') + '.agora.json' });
+  document.body.append(a); a.click(); a.remove();
+  dirty = false;
+};
+$('#openBtn').onclick = () => $('#deckIn').click();
+$('#deckIn').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!d || !Array.isArray(d.slides)) throw 0;
+    if (deck.slides.length && !confirm('Esto reemplaza la clase que tienes abierta. ¿Continuar?')) return;
+    deck = d; sel = 0; saveDeck(); dirty = false; renderEditor(); toast('Clase abierta');
+  } catch (err) { toast('Ese archivo no es una clase de Ágora.'); }
+};
+
+// CLASE EN VIVO (docente)
+let peer = null, code = null, cur = 0, live = false;
+let responses = {}, revealed = {}, anon = false, questions = [], projectedQ = null;
+const conns = new Map(); // peerId -> {conn, sid, name, sent:Set}
+
+function saveLive() { session.set('agora.live', JSON.stringify({ code, cur, responses, revealed, anon, questions, projectedQ, t: Date.now() })); }
+const who = x => x.name || 'Anónimo';
+
+$('#startBtn').onclick = () => {
+  const bad = deck.slides.findIndex(s => s.type === 'mc' && s.options.some(o => !o.trim()) || ((s.type === 'mc' || s.type === 'open') && !(s.prompt || '').trim()));
+  if (bad >= 0) { sel = bad; renderEditor(); toast('La diapositiva ' + (bad + 1) + ' tiene campos vacíos.'); return; }
+  startSession(null);
+};
+function startSession(resume) {
+  if (!window.Peer) { toast('No cargó la conexión. Revisa el internet y recarga.'); return; }
+  if (resume) { code = resume.code; cur = Math.min(resume.cur || 0, deck.slides.length - 1); responses = resume.responses || {}; revealed = resume.revealed || {}; anon = !!resume.anon; questions = resume.questions || []; projectedQ = resume.projectedQ || null; }
+  else { code = genCode(); cur = 0; responses = {}; revealed = {}; anon = false; questions = []; projectedQ = null; }
+  live = true; show('live'); openPeer(); openProjector();
+  renderAnon(); renderQuestions(); renderLive(); saveLive();
+}
+function openPeer() {
+  if (peer) try { peer.destroy(); } catch (e) {}
+  $('#codeLbl').textContent = code;
+  setLiveStatus('Conectando…', '');
+  peer = new Peer(PREFIX + code.toLowerCase(), { debug: 0 });
+  peer.on('open', () => {
+    setLiveStatus('En línea', 'ok');
+    const base = location.protocol.startsWith('http') ? location.href.split(/[?#]/)[0] : '';
+    $('#joinLink').textContent = base ? 'Enlace directo: ' + base + '?c=' + code : '';
+  });
+  peer.on('connection', conn => {
+    conn.on('data', d => onStudentMsg(conn, d));
+    conn.on('close', () => { conns.delete(conn.peer); renderRoster(); renderResponses(); });
+  });
+  peer.on('disconnected', () => { if (live) { setLiveStatus('Reconectando…', 'bad'); setTimeout(() => { try { peer.reconnect(); } catch (e) {} }, 1500); } });
+  peer.on('error', err => {
+    if (err.type === 'unavailable-id') { code = genCode(); saveLive(); toast('Código ocupado, generé uno nuevo: ' + code); openPeer(); }
+    else if (err.type === 'network' || err.type === 'server-error' || err.type === 'socket-error') setLiveStatus('Sin conexión al servidor… reintentando', 'bad');
+  });
+}
+function setLiveStatus(t, c) { const s = $('#liveStatus'); s.textContent = t; s.className = 'status ' + c; }
+
+function publicSlide(s, cached) {
+  if (cached) return { id: s.id, cached: true };
+  const p = { ...s }; delete p.correct; return p;
+}
+function countsFor(s) {
+  const c = s.options.map(() => 0);
+  Object.values(responses[s.id] || {}).forEach(r => { if (c[r.value] != null) c[r.value]++; });
+  return c;
+}
+function revealPayload(s) { return s.type === 'mc' ? { correct: s.correct, counts: countsFor(s) } : {}; }
+function sendSlide(entry) {
+  const s = deck.slides[cur];
+  const msg = { t: 'slide', index: cur, total: deck.slides.length, slide: publicSlide(s, entry.sent.has(s.id)), v: htmlRun[s.id] || 0, scroll: htmlScroll[s.id],
+    mine: (responses[s.id] || {})[entry.sid]?.value, reveal: revealed[s.id] ? revealPayload(s) : null };
+  entry.sent.add(s.id);
+  try { entry.conn.send(msg); } catch (e) {}
+}
+function broadcastSlide() { conns.forEach(sendSlide); }
+const htmlRun = {}, htmlScroll = {};
+$('#restartBtn').onclick = () => {
+  const s = deck.slides[cur]; if (s.type !== 'html') return;
+  htmlRun[s.id] = (htmlRun[s.id] || 0) + 1; delete htmlScroll[s.id];
+  renderLive();
+  conns.forEach(e => { try { e.conn.send({ t: 'restart', slideId: s.id, v: htmlRun[s.id] }); } catch (x) {} });
+  toast('Actividad reiniciada en todas las pantallas');
+};
+// Desplazamiento de la actividad guiada: el profe mueve, todos siguen
+function shareScroll(y) {
+  const s = deck.slides[cur]; if (s.type !== 'html' || s.mode !== 'guided') return;
+  y = Math.min(1, Math.max(0, +y || 0)); htmlScroll[s.id] = y;
+  conns.forEach(e => { try { e.conn.send({ t: 'scroll', slideId: s.id, y }); } catch (x) {} });
+  projPost({ t: 'scroll', y });
+  const f = $('#stage iframe'); if (f) try { f.contentWindow.postMessage({ agora: 'scroll', y }, '*'); } catch (x) {}
+}
+window.addEventListener('message', e => {
+  const d = e.data; if (!live || !d || d.agora !== 'scrolled') return;
+  const f = $('#stage iframe'); if (f && e.source === f.contentWindow) shareScroll(d.y);
+});
+function onStudentMsg(conn, d) {
+  if (!d || typeof d !== 'object') return;
+  if (d.t === 'hello') {
+    const sid = clean(d.sid, 20) || conn.peer;
+    conns.forEach((e, k) => { if (e.sid === sid && k !== conn.peer) { try { e.conn.close(); } catch (x) {} conns.delete(k); } });
+    const entry = { conn, sid, name: clean(d.name) || 'Estudiante', sent: new Set() };
+    conns.set(conn.peer, entry);
+    try { conn.send({ t: 'welcome', title: deck.title, anon }); } catch (e) {}
+    sendSlide(entry); renderRoster(); renderResponses();
+    return;
+  }
+  const entry = conns.get(conn.peer); if (!entry) return;
+  if (d.t === 'answer') {
+    const s = deck.slides.find(x => x.id === d.slideId);
+    if (!s || (s.type !== 'mc' && s.type !== 'open') || revealed[s.id]) return;
+    const R = responses[s.id] = responses[s.id] || {};
+    if (!R[entry.sid]) {
+      let v = d.value;
+      if (s.type === 'mc') { v = Number(v); if (!(v >= 0 && v < s.options.length)) return; }
+      else { v = String(v || '').trim().slice(0, 500); if (!v) return; }
+      R[entry.sid] = { name: anon ? null : entry.name, value: v };
+      saveLive();
+    }
+    try { conn.send({ t: 'ack', slideId: s.id, value: R[entry.sid].value }); } catch (e) {}
+    if (deck.slides[cur].id === s.id) renderResponses();
+  }
+  if (d.t === 'ask') {
+    const text = String(d.text || '').replace(/\s+/g, ' ').trim().slice(0, 300);
+    if (!text) return;
+    const now = Date.now();
+    if (entry.lastAsk && now - entry.lastAsk < 8000) { try { conn.send({ t: 'askAck', ok: false }); } catch (e) {} return; }
+    entry.lastAsk = now;
+    questions.push({ id: uid(), name: anon ? null : entry.name, text, slide: cur + 1, t: now, done: false });
+    saveLive(); renderQuestions();
+    toast((anon ? 'Alguien' : entry.name) + ' levantó la mano', 3200, true);
+    try { conn.send({ t: 'askAck', ok: true }); } catch (e) {}
+  }
+}
+function renderAnon() {
+  $('#anonChk').checked = anon;
+  $('#anonSw').classList.toggle('on', anon);
+}
+$('#anonChk').onchange = e => {
+  anon = e.target.checked; saveLive(); renderAnon();
+  conns.forEach(x => { try { x.conn.send({ t: 'mode', anon }); } catch (er) {} });
+  toast(anon ? 'Participación anónima activada: lo nuevo llega sin nombre.' : 'Participación con nombre activada.');
+};
+function renderQuestions() {
+  const list = $('#qList'); list.replaceChildren();
+  const pending = questions.filter(q => !q.done).length;
+  const b = $('#qBadge'); b.hidden = !pending; b.textContent = pending;
+  if (!questions.length) { list.append(h('span', { class: 'empty' }, 'Nadie ha levantado la mano todavía.')); return; }
+  [...questions].sort((a, b) => (a.done - b.done) || (b.t - a.t)).forEach(q => {
+    const hh = new Date(q.t).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' });
+    list.append(h('div', { class: 'qitem' + (q.done ? ' done' : '') + (projectedQ === q.id ? ' proj' : '') },
+      h('div', { class: 'meta', text: who(q) + ' · diapo ' + q.slide + ' · ' + hh }),
+      h('div', { text: q.text }),
+      h('div', { class: 'acts' },
+        h('button', { onclick: () => { projectedQ = projectedQ === q.id ? null : q.id; saveLive(); renderQuestions(); renderLive(); } },
+          projectedQ === q.id ? 'Quitar de la pantalla' : 'Proyectar'),
+        h('button', { onclick: () => { q.done = !q.done; if (q.done && projectedQ === q.id) projectedQ = null; saveLive(); renderQuestions(); renderLive(); } },
+          q.done ? 'Reabrir' : 'Marcar respondida'))));
+  });
+}
+// Puntero láser
+let laserOn = false, laserPos = null, laserLast = 0, laserTimer = null;
+function placeLaser(container, pos) {
+  const slide = container.querySelector('.slide'); if (!slide) return;
+  let dot = slide.querySelector('.laser');
+  if (!pos) { if (dot) dot.remove(); return; }
+  if (!dot) { dot = h('div', { class: 'laser' }); slide.append(dot); }
+  dot.style.left = (pos.x * 100) + '%'; dot.style.top = (pos.y * 100) + '%';
+}
+function sendLaser() {
+  laserLast = Date.now(); laserTimer = null;
+  const msg = laserPos ? { t: 'laser', x: laserPos.x, y: laserPos.y } : { t: 'laser', off: true };
+  conns.forEach(e => { try { e.conn.send(msg); } catch (x) {} });
+  projPost({ t: 'laser', pos: laserPos });
+}
+
+// Ventana del proyector: muestra solo la diapositiva. Se comunica con postMessage,
+// que funciona igual abriendo el archivo desde el PC o desde un enlace.
+const PNS = 'agora-proj';
+let projWin = null;
+function projPost(msg) {
+  if (!projWin || projWin.closed) return;
+  try { projWin.postMessage({ ns: PNS, ...msg }, '*'); } catch (e) {}
+}
+function projState() {
+  const s = deck.slides[cur], rev = !!revealed[s.id];
+  const pq = questions.find(q => q.id === projectedQ);
+  const slide = { ...s }; if (!rev) delete slide.correct;
+  return { t: 'state', slide, code, laserOn, laser: laserPos, v: htmlRun[s.id] || 0, scroll: htmlScroll[s.id],
+    counts: rev && s.type === 'mc' ? countsFor(s) : null, correct: rev && s.type === 'mc' ? s.correct : null,
+    answers: s.type === 'open' && rev ? Object.values(responses[s.id] || {}).filter(a => !a.hidden).map(a => ({ name: a.name, value: a.value })) : null,
+    pq: pq ? { name: pq.name, text: pq.text } : null };
+}
+function renderProjBtn() {
+  const on = !!(projWin && !projWin.closed);
+  const b = $('#projBtn'); b.classList.toggle('on', on);
+  b.textContent = on ? 'Proyector abierto' : 'Abrir proyector';
+}
+function openProjector() {
+  const w = window.open(location.href.split(/[?#]/)[0] + '?proyector', 'agora-proyector', 'popup=yes,width=1100,height=660');
+  if (!w) { toast('El navegador bloqueó la ventana del proyector. Permite las ventanas emergentes para esta página y toca «Abrir proyector».', 6000); return; }
+  projWin = w; try { w.focus(); } catch (e) {}
+  renderProjBtn();
+}
+$('#projBtn').onclick = openProjector;
+setInterval(() => { if (live) renderProjBtn(); }, 2000);
+window.addEventListener('message', e => {
+  const d = e.data;
+  if (!live || !d || d.ns !== PNS || !e.source) return;
+  if (d.t === 'ready') {
+    const fresh = projWin !== e.source;
+    projWin = e.source; renderProjBtn();
+    if (fresh || d.need) projPost(projState());
+  } else if (e.source === projWin && d.t === 'scroll') {
+    shareScroll(d.y);
+  } else if (e.source === projWin && d.t === 'key') {
+    handleKey(d.key);
+  } else if (e.source === projWin && d.t === 'laser' && laserOn) {
+    laserPos = d.pos ? { x: Math.min(1, Math.max(0, +d.pos.x || 0)), y: Math.min(1, Math.max(0, +d.pos.y || 0)) } : null;
+    placeLaser($('#stage'), laserPos); queueLaser();
+  }
+});
+function queueLaser() {
+  const wait = 40 - (Date.now() - laserLast);
+  if (wait <= 0) sendLaser(); else if (!laserTimer) laserTimer = setTimeout(sendLaser, wait);
+}
+function setLaser(on) {
+  laserOn = on;
+  projPost({ t: 'laserMode', on });
+  $('#laserBtn').classList.toggle('on', on);
+  $('#stage').classList.toggle('lasering', on);
+  if (!on && laserPos) { laserPos = null; placeLaser($('#stage'), null); queueLaser(); }
+}
+$('#laserBtn').onclick = () => setLaser(!laserOn);
+$('#stage').addEventListener('pointermove', e => {
+  if (!laserOn) return;
+  const slide = $('#stage .slide'); if (!slide) return;
+  const r = slide.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+  laserPos = (x >= 0 && x <= 1 && y >= 0 && y <= 1) ? { x: Math.round(x * 1000) / 1000, y: Math.round(y * 1000) / 1000 } : null;
+  placeLaser($('#stage'), laserPos); queueLaser();
+});
+$('#stage').addEventListener('pointerleave', () => { if (laserOn && laserPos) { laserPos = null; placeLaser($('#stage'), null); queueLaser(); } });
+
+function go(i) {
+  if (i < 0 || i >= deck.slides.length || i === cur) return;
+  cur = i; saveLive(); renderLive(); broadcastSlide();
+}
+function renderLive() {
+  const s = deck.slides[cur], rev = !!revealed[s.id];
+  const answers = s.type === 'open' && rev ? Object.values(responses[s.id] || {}).filter(a => !a.hidden) : null;
+  setStage($('#stage'), s, { counts: rev && s.type === 'mc' ? countsFor(s) : null, correct: rev ? s.correct : null, answers, v: htmlRun[s.id], tag: true });
+  $('#restartBtn').hidden = s.type !== 'html';
+  if (laserOn) placeLaser($('#stage'), laserPos);
+  const pq = questions.find(q => q.id === projectedQ);
+  if (pq) $('#stage').append(h('div', { class: 'qproj' }, h('small', {}, iconEl(HAND), (pq.name ? pq.name : 'Alguien') + ' pregunta'), h('span', { text: pq.text })));
+  $('#pos').textContent = (cur + 1) + ' / ' + deck.slides.length;
+  $('#prevBtn').disabled = cur === 0;
+  $('#nextBtn').disabled = cur === deck.slides.length - 1;
+  const isQ = s.type === 'mc' || s.type === 'open';
+  const rb = $('#revealBtn'); rb.hidden = !isQ; rb.disabled = rev;
+  rb.textContent = rev ? 'Resultados mostrados' : (s.type === 'mc' ? 'Revelar respuesta' : 'Mostrar respuestas');
+  renderResponses();
+  projPost(projState());
+}
+function renderRoster() {
+  const r = $('#roster'); r.replaceChildren();
+  $('#nConn').textContent = conns.size;
+  if (!conns.size) { r.append(h('span', { class: 'empty' }, 'Todavía no ha llegado nadie. Comparte el código.')); return; }
+  [...conns.values()].sort((a, b) => a.name.localeCompare(b.name)).forEach(e => r.append(persona(e.name)));
+}
+function renderResponses() {
+  const s = deck.slides[cur], box = $('#responses'); box.replaceChildren();
+  if (s.type !== 'mc' && s.type !== 'open') { box.append(h('p', { class: 'muted', style: 'margin:0' }, 'Esta diapositiva no tiene pregunta.')); return; }
+  const R = Object.values(responses[s.id] || {});
+  box.append(h('p', { class: 'resp-count' }, R.length + ' respuesta(s) · ' + conns.size + ' conectados'));
+  if (s.type === 'mc') {
+    const c = countsFor(s), max = Math.max(1, ...c);
+    s.options.forEach((o, i) => box.append(h('div', { class: 'bar-row' },
+      h('span', { class: 'letter o' + (i + 1) }, LET[i]),
+      h('div', { class: 'bar' }, h('i', { class: 'o' + (i + 1), style: 'width:' + (c[i] / max * 100) + '%' })),
+      h('b', {}, c[i]), i === s.correct ? h('span', { class: 'ok', title: 'Correcta' }, '✓') : null)));
+    if (R.length) box.append(h('details', {}, h('summary', {}, 'Ver quién respondió qué'),
+      h('ul', { class: 'who' }, R.map(x => h('li', { text: who(x) + ': ' + LET[x.value] + (x.value === s.correct ? ' ✓' : '') })))));
+  } else {
+    box.append(h('ul', { class: 'open-list' }, R.map(x => h('li', {},
+      h('b', { text: who(x) + ': ' }), h('span', { text: x.value }),
+      h('button', { class: 'ghost chk', title: x.hidden ? 'Mostrar en pantalla' : 'Ocultar de la pantalla',
+        onclick: () => { x.hidden = !x.hidden; saveLive(); renderLive(); } }, x.hidden ? 'Mostrar' : 'Ocultar')))));
+  }
+}
+$('#prevBtn').onclick = () => go(cur - 1);
+$('#nextBtn').onclick = () => go(cur + 1);
+$('#revealBtn').onclick = () => {
+  const s = deck.slides[cur]; revealed[s.id] = true; saveLive(); renderLive();
+  conns.forEach(e => { try { e.conn.send({ t: 'reveal', slideId: s.id, ...revealPayload(s) }); } catch (x) {} });
+};
+$('#fsBtn').onclick = () => { const st = $('#stage'); if (st.requestFullscreen) st.requestFullscreen().catch(() => {}); };
+$('#stage').ondblclick = () => { if (document.fullscreenElement) document.exitFullscreen(); };
+function handleKey(k) {
+  if (k === 'ArrowRight' || k === ' ' || k === 'PageDown') { go(cur + 1); return true; }
+  if (k === 'ArrowLeft' || k === 'PageUp') { go(cur - 1); return true; }
+  if (k === 'l' || k === 'L') { setLaser(!laserOn); return true; }
+  return false;
+}
+document.addEventListener('keydown', e => {
+  if (!live) return;
+  if (!$('#quickBg').hidden) { if (e.key === 'Escape') closeQuick(); return; }
+  if (/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  if (handleKey(e.key) && e.key !== 'l' && e.key !== 'L') e.preventDefault();
+});
+
+// Pregunta rápida: el profe la crea en plena clase y queda dentro de la presentación
+let quick = null;
+function openQuick() {
+  quick = { type: 'mc', options: ['', '', '', ''], correct: 0, mode: 'free', html: null, fileName: '' };
+  $('#quickPrompt').value = ''; $('#quickErr').hidden = true;
+  $('#quickBg').hidden = false; renderQuick(); $('#quickPrompt').focus();
+}
+function closeQuick() { $('#quickBg').hidden = true; quick = null; }
+function renderQuick() {
+  const types = [['mc', 'Opción múltiple'], ['tf', 'Verdadero o falso'], ['open', 'Abierta'], ['html', 'Actividad HTML']];
+  $('#quickType').replaceChildren(...types.map(([k, label]) => h('button', { class: quick.type === k ? 'on' : '', onclick: () => {
+    if (k === quick.type) return;
+    quick.type = k;
+    if (k === 'tf') { quick.options = ['Verdadero', 'Falso']; quick.correct = 0; }
+    if (k === 'mc' && quick.options.join() === 'Verdadero,Falso') { quick.options = ['', '', '', '']; quick.correct = 0; }
+    renderQuick();
+  } }, label)));
+  const box = $('#quickOpts'); box.replaceChildren();
+  const isHtml = quick.type === 'html';
+  $('#quickPromptLbl').textContent = isHtml ? 'Nombre de la actividad (opcional)' : 'Pregunta';
+  $('#quickPrompt').placeholder = isHtml ? 'Si lo dejas vacío, uso el nombre del archivo' : 'Escribe la pregunta';
+  if (isHtml) {
+    const pick = (mode, title, sub) => h('label', { class: quick.mode === mode ? 'on' : '' },
+      h('input', { type: 'radio', name: 'quickMode', checked: quick.mode === mode, onchange: () => { quick.mode = mode; renderQuick(); } }),
+      h('span', {}, h('b', {}, title), h('small', {}, sub)));
+    box.append(
+      h('label', { class: 'f' }, 'Archivo'),
+      h('div', { class: 'optrow' },
+        h('button', { onclick: () => $('#quickHtmlIn').click() }, quick.html ? 'Cambiar archivo' : 'Escoger archivo .html'),
+        h('span', { class: quick.html ? '' : 'muted', text: quick.html ? quick.fileName : 'Ningún archivo escogido' })),
+      h('label', { class: 'f' }, '¿Cómo la hacen?'),
+      h('div', { class: 'mode-pick' },
+        pick('free', 'Libre', 'Cada estudiante la resuelve a su ritmo en su pantalla.'),
+        pick('guided', 'Guiada', 'Todos siguen tu desplazamiento, como una lectura en grupo.')),
+      h('p', { class: 'muted', style: 'margin:.8em 0 0;font-size:.85em' }, 'Funciona mejor si la actividad viene en un solo archivo, con las imágenes incluidas. Corre aislada: no puede ver nombres ni respuestas.'));
+    return;
+  }
+  if (quick.type === 'open') { box.append(h('p', { class: 'muted', style: 'margin:.8em 0 0;font-size:.9em' }, 'Los estudiantes escriben su respuesta y tú decides cuándo mostrarlas.')); return; }
+  box.append(h('label', { class: 'f' }, 'Opciones (marca la correcta)'));
+  quick.options.forEach((o, i) => {
+    box.append(h('div', { class: 'optrow' },
+      h('input', { type: 'radio', name: 'quickCorrect', checked: quick.correct === i, title: 'Correcta', onchange: () => { quick.correct = i; } }),
+      h('span', { class: 'letter o' + (i + 1) }, LET[i]),
+      h('input', { type: 'text', value: o, maxlength: 120, placeholder: 'Opción ' + LET[i], oninput: e => { quick.options[i] = e.target.value; } }),
+      quick.options.length > 2 ? h('button', { class: 'ghost', title: 'Quitar', onclick: () => {
+        quick.options.splice(i, 1);
+        if (quick.correct === i) quick.correct = 0; else if (quick.correct > i) quick.correct--;
+        renderQuick();
+      } }, '✕') : null));
+  });
+  if (quick.options.length < 6 && quick.type !== 'tf') box.append(h('button', { onclick: () => { quick.options.push(''); renderQuick(); } }, '+ Opción'));
+}
+$('#quickHtmlIn').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f || !quick) return;
+  const err = $('#quickErr');
+  if (f.size > 8 * 1024 * 1024) { err.textContent = 'Ese archivo pesa más de 8 MB. Prueba con imágenes más livianas.'; err.hidden = false; return; }
+  const html = await f.text();
+  if (!/<[a-z!]/i.test(html)) { err.textContent = 'Ese archivo no parece un HTML.'; err.hidden = false; return; }
+  err.hidden = true; quick.html = html; quick.fileName = f.name; renderQuick();
+};
+function submitQuick(launch) {
+  const err = $('#quickErr'), prompt = $('#quickPrompt').value.trim();
+  const fail = m => { err.textContent = m; err.hidden = false; };
+  let slide;
+  if (quick.type === 'html') {
+    if (!quick.html) return fail('Escoge el archivo de la actividad.');
+    slide = { id: uid(), type: 'html', name: prompt || quick.fileName.replace(/\.html?$/i, ''), html: quick.html, mode: quick.mode };
+  }
+  else if (!prompt) return fail('Escribe la pregunta.');
+  else if (quick.type === 'open') slide = { id: uid(), type: 'open', prompt };
+  else {
+    const kept = quick.options.map((t, i) => ({ t: t.trim(), i })).filter(o => o.t);
+    if (kept.length < 2) return fail('Escribe al menos dos opciones.');
+    const correct = kept.findIndex(o => o.i === quick.correct);
+    if (correct < 0) return fail('Marca cuál opción es la correcta.');
+    slide = { id: uid(), type: 'mc', prompt, options: kept.map(o => o.t), correct };
+  }
+  deck.slides.splice(cur + 1, 0, slide); saveDeck(); closeQuick();
+  if (launch) go(cur + 1);
+  else { renderLive(); broadcastSlide(); toast('Pregunta lista: sale después de esta diapositiva.'); }
+}
+$('#quickBtn').onclick = openQuick;
+$('#quickCancel').onclick = closeQuick;
+$('#quickGo').onclick = () => submitQuick(true);
+$('#quickNext').onclick = () => submitQuick(false);
+$('#quickBg').onclick = e => { if (e.target === $('#quickBg')) closeQuick(); };
+$('#endBtn').onclick = () => {
+  if (!confirm('¿Terminar la clase? Los estudiantes se desconectarán.')) return;
+  conns.forEach(e => { try { e.conn.send({ t: 'end' }); } catch (x) {} });
+  projPost({ t: 'end' }); projWin = null; renderProjBtn();
+  live = false; setLaser(false); session.del('agora.live');
+  setTimeout(() => { try { peer.destroy(); } catch (e) {} peer = null; conns.clear(); }, 400);
+  show('editor'); renderEditor();
+};
+window.addEventListener('beforeunload', e => {
+  if (new URLSearchParams(location.search).has('proyector')) return;
+  if (live || (dirty && deck.slides.length)) { e.preventDefault(); e.returnValue = ''; }
+});
+
+// ESTUDIANTE
+let sPeer = null, sConn = null, sCode = '', sName = '', sEnded = false, sEverConnected = false, retryT = null;
+const sid = store.get('agora.sid') || (() => { const v = uid(); store.set('agora.sid', v); return v; })();
+const slideCache = {}, myAnswers = {}, reveals = {};
+let curSlide = null, curIndex = 0, curTotal = 0, sLaser = null;
+const sRun = {}, sScroll = {};
+function applyScroll(c, y) { const f = c.querySelector('.slide-html iframe'); if (f) try { f.contentWindow.postMessage({ agora: 'scroll', y }, '*'); } catch (e) {} }
+// Cuando una actividad guiada termina de cargar, se ubica donde va el profe
+window.addEventListener('message', e => {
+  const d = e.data; if (!d || d.agora !== 'loaded') return;
+  const f = $('#sStage iframe');
+  if (f && e.source === f.contentWindow && curSlide && curSlide.mode === 'guided' && sScroll[curSlide.id] != null) applyScroll($('#sStage'), sScroll[curSlide.id]);
+});
+
+function sStatus(t, c) { const s = $('#sStatus'); s.textContent = t; s.className = 'status ' + (c || ''); }
+$('#joinCode').oninput = e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, ''); };
+$('#joinBtn').onclick = () => {
+  const c = $('#joinCode').value.trim().toUpperCase(), n = clean($('#joinName').value);
+  const err = $('#joinErr');
+  if (c.length !== 4) { err.textContent = 'El código tiene 4 letras.'; err.hidden = false; return; }
+  if (!n) { err.textContent = 'Escribe tu nombre.'; err.hidden = false; return; }
+  if (!window.Peer) { err.textContent = 'No cargó la conexión. Revisa el internet y recarga.'; err.hidden = false; return; }
+  err.hidden = true; sCode = c; sName = n; sEnded = false; sEverConnected = false;
+  store.set('agora.name', n);
+  $('#joinBtn').disabled = true; $('#joinBtn').textContent = 'Conectando…';
+  if (sPeer) try { sPeer.destroy(); } catch (e) {}
+  sPeer = new Peer({ debug: 0 });
+  sPeer.on('open', connectToTeacher);
+  sPeer.on('disconnected', () => { if (!sEnded) setTimeout(() => { try { sPeer.reconnect(); } catch (e) {} }, 1500); });
+  sPeer.on('error', er => {
+    if (er.type === 'peer-unavailable') {
+      if (!sEverConnected) { joinFail('No encontré una clase con el código ' + sCode + '. Revisa el código.'); }
+      else retry();
+    } else if (!sEverConnected && (er.type === 'network' || er.type === 'server-error' || er.type === 'socket-error' || er.type === 'browser-incompatible')) {
+      joinFail('No pude conectarme. Revisa el internet e inténtalo otra vez.');
+    } else retry();
+  });
+};
+function joinFail(msg) {
+  try { sPeer.destroy(); } catch (e) {}
+  $('#joinBtn').disabled = false; $('#joinBtn').textContent = 'Entrar a la clase';
+  const err = $('#joinErr'); err.textContent = msg; err.hidden = false; show('sJoin');
+}
+function connectToTeacher() {
+  clearTimeout(retryT);
+  if (sEnded || !sPeer || sPeer.destroyed) return;
+  if (sConn) try { sConn.close(); } catch (e) {}
+  const c = sPeer.connect(PREFIX + sCode.toLowerCase(), { reliable: true });
+  sConn = c;
+  c.on('open', () => {
+    sEverConnected = true;
+    c.send({ t: 'hello', sid, name: sName });
+    show('sClass'); sStatus('Conectado', 'ok');
+    $('#joinBtn').disabled = false; $('#joinBtn').textContent = 'Entrar a la clase';
+  });
+  c.on('data', onTeacherMsg);
+  c.on('close', () => { if (c === sConn) retry(); });
+  c.on('error', () => { if (c === sConn) retry(); });
+}
+function retry() {
+  if (sEnded || !sEverConnected) return;
+  sStatus('Reconectando…', 'bad');
+  clearTimeout(retryT); retryT = setTimeout(connectToTeacher, 3000);
+}
+function onTeacherMsg(d) {
+  if (!d || typeof d !== 'object') return;
+  if (d.t === 'welcome') { $('#sTitle').textContent = d.title || 'Clase'; document.title = (d.title || 'Clase') + ' · Ágora'; $('#sAnon').hidden = !d.anon; }
+  else if (d.t === 'laser') {
+    sLaser = d.off ? null : { x: Math.min(1, Math.max(0, +d.x || 0)), y: Math.min(1, Math.max(0, +d.y || 0)) };
+    placeLaser($('#sStage'), sLaser);
+  }
+  else if (d.t === 'restart') { sRun[d.slideId] = d.v; delete sScroll[d.slideId]; if (curSlide && curSlide.id === d.slideId) renderStudent(); }
+  else if (d.t === 'scroll') { sScroll[d.slideId] = d.y; if (curSlide && curSlide.id === d.slideId) applyScroll($('#sStage'), d.y); }
+  else if (d.t === 'mode') { $('#sAnon').hidden = !d.anon; toast(d.anon ? 'Ahora la participación es anónima' : 'Ahora la participación es con nombre'); }
+  else if (d.t === 'askAck') {
+    const btn = $('#sAskSend'); btn.disabled = false; btn.textContent = 'Enviar pregunta';
+    if (d.ok) { $('#sAskTxt').value = ''; $('#sAsk').hidden = true; toast('Tu pregunta le llegó al profe', 2600, true); }
+    else toast('Espera unos segundos antes de enviar otra pregunta.');
+  }
+  else if (d.t === 'slide') {
+    let s = d.slide;
+    if (s.cached) s = slideCache[s.id]; else slideCache[s.id] = s;
+    if (!s) return;
+    if (d.mine != null) myAnswers[s.id] = d.mine;
+    if (d.reveal) reveals[s.id] = d.reveal;
+    sRun[s.id] = d.v || 0; if (d.scroll != null) sScroll[s.id] = d.scroll;
+    curSlide = s; curIndex = d.index; curTotal = d.total; renderStudent();
+  } else if (d.t === 'ack') { myAnswers[d.slideId] = d.value; if (curSlide && curSlide.id === d.slideId) renderStudent(); }
+  else if (d.t === 'reveal') { reveals[d.slideId] = { correct: d.correct, counts: d.counts }; if (curSlide && curSlide.id === d.slideId) renderStudent(); }
+  else if (d.t === 'end') {
+    sEnded = true; sStatus('Clase terminada', '');
+    $('#sStage').replaceChildren(h('div', { class: 'waiting' }, iconEl(LLANO_MINI), 'Se acabó la clase. ¡Gracias por participar!'));
+    $('#sAnswer').replaceChildren(); $('#sPos').textContent = ''; $('#sAsk').hidden = true; $('#sAskBtn').hidden = true;
+    try { sPeer.destroy(); } catch (e) {}
+  }
+}
+function sendAnswer(slideId, value) {
+  if (myAnswers[slideId] != null) return;
+  myAnswers[slideId] = value; renderStudent();
+  try { sConn.send({ t: 'answer', slideId, value }); } catch (e) { toast('No se pudo enviar. Revisa la conexión.'); delete myAnswers[slideId]; renderStudent(); }
+}
+function renderStudent() {
+  const s = curSlide; if (!s) return;
+  const rev = reveals[s.id], mine = myAnswers[s.id];
+  setStage($('#sStage'), s, { counts: rev && rev.counts, correct: rev ? rev.correct : null, v: sRun[s.id] });
+  placeLaser($('#sStage'), sLaser);
+  $('#sPos').textContent = (curIndex + 1) + ' / ' + curTotal;
+  const area = $('#sAnswer'); area.replaceChildren();
+  if (s.type === 'mc') {
+    const total = rev && rev.counts ? rev.counts.reduce((a, b) => a + b, 0) : 0;
+    s.options.forEach((o, i) => {
+      const cls = 'opt-btn o' + (i + 1) + (mine === i ? ' picked' : '') + (rev && rev.correct === i ? ' right' : '') + (rev && mine === i && rev.correct !== i ? ' wrong' : '');
+      area.append(h('button', { class: cls, disabled: mine != null || !!rev, onclick: () => sendAnswer(s.id, i) },
+        h('span', { class: 'letter' }, LET[i]), h('span', { text: o }),
+        rev && rev.counts ? h('span', { class: 'pct' }, Math.round((rev.counts[i] || 0) / Math.max(1, total) * 100) + '%') : null));
+    });
+    let note = 'Elige una opción';
+    if (rev) note = mine == null ? 'Esta se te pasó. La correcta era la ' + LET[rev.correct] + '.' : mine === rev.correct ? '¡Bien ahí!' : 'Casi. La correcta era la ' + LET[rev.correct] + '.';
+    else if (mine != null) note = 'Listo, respuesta enviada. Espera al profe…';
+    area.append(h('p', { class: 's-note', text: note }));
+  } else if (s.type === 'open') {
+    if (mine != null) {
+      area.append(h('p', { class: 's-note', text: 'Tu respuesta: «' + mine + '»' }));
+    } else if (rev) {
+      area.append(h('p', { class: 's-note' }, 'Las respuestas ya se cerraron.'));
+    } else {
+      const ta = h('textarea', { rows: 3, maxlength: 500, placeholder: 'Escribe tu respuesta…', style: 'grid-column:1/-1' });
+      area.append(ta, h('button', { class: 'primary', style: 'grid-column:1/-1', onclick: () => { const v = ta.value.trim(); if (v) sendAnswer(s.id, v); } }, 'Enviar respuesta'));
+    }
+  }
+}
+$('#sAskBtn').onclick = () => { const b = $('#sAsk'); b.hidden = !b.hidden; if (!b.hidden) $('#sAskTxt').focus(); };
+$('#sAskCancel').onclick = () => { $('#sAsk').hidden = true; };
+$('#sAskSend').onclick = () => {
+  const v = $('#sAskTxt').value.trim(); if (!v) return;
+  try { sConn.send({ t: 'ask', text: v }); $('#sAskSend').disabled = true; $('#sAskSend').textContent = 'Enviando…';
+    setTimeout(() => { const b = $('#sAskSend'); if (b.disabled) { b.disabled = false; b.textContent = 'Enviar pregunta'; toast('No hubo respuesta del profe. Intenta de nuevo.'); } }, 6000); }
+  catch (e) { toast('No se pudo enviar. Revisa la conexión.'); }
+};
+$('#sFs').onclick = () => { const el = document.documentElement; if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); };
+
+// Navegación inicial
+document.querySelectorAll('[data-home]').forEach(el => el.onclick = () => { if (!live) { show('home'); renderHome(); } });
+$('#goTeacher').onclick = () => { show('editor'); renderEditor(); };
+$('#goStudent').onclick = () => { $('#joinName').value = store.get('agora.name') || ''; show('sJoin'); $('#joinCode').focus(); };
+function renderHome() {
+  const box = $('#resumeBox'); box.replaceChildren(); box.hidden = true;
+  let L = null; try { L = JSON.parse(session.get('agora.live')); } catch (e) {}
+  if (L && L.code && deck.slides.length && Date.now() - L.t < 6 * 3600e3) {
+    box.hidden = false;
+    box.append(h('div', { class: 'panel', style: 'display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0' },
+      h('span', { class: 'grow', style: 'flex:1' }, 'Tienes una clase abierta con el código ', h('b', { text: L.code }), '.'),
+      h('button', { class: 'primary', onclick: () => startSession(L) }, 'Retomar clase'),
+      h('button', { class: 'ghost', onclick: () => { session.del('agora.live'); renderHome(); } }, 'Descartar')));
+  }
+}
+// Lado del proyector
+function startProjector() {
+  show('proj'); document.title = 'Proyector · Ágora';
+  const stage = $('#projStage'), codeEl = $('#projCode'), tools = $('#projTools');
+  let st = null, gotState = false, codeHidden = false;
+  const post = m => { try { window.opener.postMessage({ ns: PNS, ...m }, '*'); } catch (e) {} };
+  const wait = (msg, sub) => stage.replaceChildren(h('div', { class: 'proj-wait' }, iconEl(LLANO_MINI), msg, sub ? h('small', {}, sub) : null));
+  if (!window.opener) { wait('Esta es la pantalla del proyector.', 'Ábrela con el botón «Abrir proyector» de tu clase en vivo.'); return; }
+  wait('Conectando con tu clase…');
+  function render() {
+    if (!st) return;
+    setStage(stage, st.slide, { counts: st.counts, correct: st.correct, answers: st.answers, v: st.v });
+    placeLaser(stage, st.laser);
+    if (st.pq) stage.append(h('div', { class: 'qproj' }, h('small', {}, iconEl(HAND), (st.pq.name || 'Alguien') + ' pregunta'), h('span', { text: st.pq.text })));
+    stage.classList.toggle('lasering', !!st.laserOn);
+    codeEl.querySelector('b').textContent = st.code || '';
+    codeEl.hidden = codeHidden || !st.code;
+  }
+  window.addEventListener('message', e => {
+    const d = e.data;
+    const f = stage.querySelector('iframe');
+    if (d && f && e.source === f.contentWindow && st && st.slide.mode === 'guided') {
+      if (d.agora === 'scrolled') post({ t: 'scroll', y: d.y });
+      if (d.agora === 'loaded' && st.scroll != null) f.contentWindow.postMessage({ agora: 'scroll', y: st.scroll }, '*');
+      return;
+    }
+    if (e.source !== window.opener || !d || d.ns !== PNS) return;
+    if (d.t === 'state') { st = d; gotState = true; render(); }
+    else if (d.t === 'laser' && st) { st.laser = d.pos; placeLaser(stage, d.pos); }
+    else if (d.t === 'scroll' && st) { st.scroll = d.y; const f = stage.querySelector('iframe'); if (f) try { f.contentWindow.postMessage({ agora: 'scroll', y: d.y }, '*'); } catch (x) {} }
+    else if (d.t === 'laserMode' && st) { st.laserOn = d.on; if (!d.on) st.laser = null; render(); }
+    else if (d.t === 'end') { st = null; codeEl.hidden = true; wait('Se acabó la clase.', 'Puedes cerrar esta ventana.'); setTimeout(() => window.close(), 2500); }
+  });
+  // Avisa que está lista; si el profe recarga su pestaña, se vuelve a encontrar sola
+  post({ t: 'ready', need: true });
+  setInterval(() => { if (window.opener && !window.opener.closed) post({ t: 'ready', need: !gotState }); }, 2500);
+  const fs = () => { const el = $('#proj'); if (document.fullscreenElement) document.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); };
+  $('#projFs').onclick = fs;
+  $('#proj').ondblclick = fs;
+  codeEl.onclick = () => { codeHidden = true; codeEl.hidden = true; };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'f' || e.key === 'F') { fs(); return; }
+    if (e.key === 'c' || e.key === 'C') { codeHidden = !codeHidden; render(); return; }
+    if (['ArrowRight', 'ArrowLeft', ' ', 'PageDown', 'PageUp', 'l', 'L'].includes(e.key)) { e.preventDefault(); post({ t: 'key', key: e.key }); }
+  });
+  let idleT;
+  document.addEventListener('pointermove', e => {
+    tools.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => tools.classList.add('idle'), 2500);
+    if (!st || !st.laserOn) return;
+    const slide = stage.querySelector('.slide'); if (!slide) return;
+    const r = slide.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    const pos = (x >= 0 && x <= 1 && y >= 0 && y <= 1) ? { x: Math.round(x * 1000) / 1000, y: Math.round(y * 1000) / 1000 } : null;
+    st.laser = pos; placeLaser(stage, pos); post({ t: 'laser', pos });
+  });
+  idleT = setTimeout(() => tools.classList.add('idle'), 4000);
+}
+
+markIcons();
+renderRoster(); renderQuestions();
+$('#sStage').replaceChildren(h('div', { class: 'waiting' }, iconEl(LLANO_MINI), 'Esperando a que el profe arranque…'));
+(() => {
+  if (new URLSearchParams(location.search).has('proyector')) { startProjector(); return; }
+  const c = new URLSearchParams(location.search).get('c');
+  if (c) { $('#joinCode').value = c.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4); $('#joinName').value = store.get('agora.name') || ''; show('sJoin'); $('#joinName').focus(); }
+  else { show('home'); renderHome(); }
+})();
+</script>
+</body>
+</html>
